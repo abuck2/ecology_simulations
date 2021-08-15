@@ -8,6 +8,7 @@ from mesa.datacollection import DataCollector
 #batches of multiple models -> run the model multiple time
 from mesa.batchrunner import BatchRunner
 
+import random
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -60,7 +61,8 @@ class ForagingModel(Model):
 
         # Create Rabbits
         for i in range(self.num_agents):
-            a = Rabbit(i, self)
+            sex = bool(random.getrandbits(1))
+            a = Rabbit(i, self, sex)
             self.schedule.add(a)
 
             #Agent is activated in a random grid cell
@@ -77,6 +79,7 @@ class ForagingModel(Model):
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
+            self.current_id = i+1
         
         #Initialize the data collector when model is initialized
         #self.datacollector = DataCollector(
@@ -93,6 +96,10 @@ class ForagingModel(Model):
         #advance simulation one step
         self.schedule.step()
 
+    def get_next_id(self):
+        next_one = max([agent.unique_id for agent in self.schedule.agents])+1
+        all_ids = [agent.unique_id for agent in self.schedule.agents]
+        return next_one, all_ids
 
 if __name__=="__main__":
     #######
@@ -106,7 +113,7 @@ if __name__=="__main__":
         "P" : 15
         }
     #Variable number of rabbits
-    variable_params = {"R": range(10, 50, 5)}
+    variable_params = {"R": range(10, 30, 5)}
 
     #Batch running instanciation
     batch_run = BatchRunner(
@@ -114,7 +121,7 @@ if __name__=="__main__":
             variable_params,
             fixed_params,
             iterations=3,
-            max_steps=25,
+            max_steps=60,
             model_reporters={
                 "Rabbits": compute_population_r,
                 "Plants": compute_population_p} #Reports gini coeff (defined above) at the end of each run (not after each step)
@@ -124,10 +131,10 @@ if __name__=="__main__":
     
     run_data = batch_run.get_model_vars_dataframe()
     run_data.head()
-    plt.scatter(run_data.R, run_data.Plants)
-    plt.show()
-    #plt.scatter(run_data.R, run_data.Rabbits)
+    #plt.scatter(run_data.R, run_data.Plants)
     #plt.show()
+    plt.scatter(run_data.R, run_data.Rabbits)
+    plt.show()
     
 
 
