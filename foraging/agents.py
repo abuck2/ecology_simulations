@@ -8,6 +8,7 @@ from mesa.datacollection import DataCollector
 #batches of multiple models -> run the model multiple time
 from mesa.batchrunner import BatchRunner
 
+import random
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -17,13 +18,16 @@ To add :
     - Add carrot ressources on the map?- Done
     - Datacollector at agent level - Check how to collect one species - ok
     - Make rabbits find plants - ok
-    - Removes prints, add logger
     - Add reproduction:
-        - Sexual for rabbits
+        - Sexual for rabbits:
+            - Add a sex for each agent
         - shoots for plants
+    - move cellmates in step function
+    - Removes prints, add logger
     - Add different kind of agent?
     - Comment
     - Readme
+    - Remove useless libs
 """
 
 
@@ -48,11 +52,14 @@ class Plant(Agent):
             raise ValueError("Plant size bigger than max size")
 
 class Rabbit(Agent):
-    def __init__(self, unique_id, model):
+    def __init__(self, unique_id:int, model, sex:bool):
         super().__init__(unique_id, model)
         self.carrot = 7
-        self.unique_id = unique_id
         self.health = 5
+        
+        self.unique_id = unique_id
+        self.sex = sex
+        self.reprod_rate = 0.4 #they fuck like bunnies
 
     def step(self):
 
@@ -62,8 +69,12 @@ class Rabbit(Agent):
         #extracting carrot
         self.extract_carrot()
         
+        #reproduce if possible
+        self.sexual_reprod()
+        
         #eat
         self.feed()
+
 
 
     def move(self):
@@ -119,63 +130,19 @@ class Rabbit(Agent):
             self.carrot += 1
             print("Rabbit {} is giving a carrot to rabbit {}!!".format(self.unique_id, other.unique_id))
 
-if __name__=="__main__":
-    #Run the model once for x steps
-    all_carrots = []
-    model = ForagingModel(10, 5, 5)
-    for i in range(15):
-        model.step()
-    
-    """
-    #Get agent-level data from DataCollector
-    agent_nr = 9
-    carrots_data = model.datacollector.get_agent_vars_dataframe()
-    print(carrots_data)
-    end_c = carrots_data.xs(agent_nr, level="AgentID")["Carrot"]
-    end_c.hist(bins=range(carrots_data.Carrot.max()+1))
-    plt.show()
-    """ 
-    """
-    #Rising social inequalities in virtual rabbits (get model-level data from DataCollector)
-    gini = model.datacollector.get_model_vars_dataframe()["health"]
-    gini.plot()
-    plt.show()
-    """
-    #######
-    #Run a batch of models
-    #######
-    #Parameters settings
-    #Fixed grid size
-    fixed_params = {
-        "width": 10,
-        "height": 10
-        }
-    #Variable number of rabbits
-    variable_params = {"N": range(10, 500, 10)}
-
-    #Batch running instanciation
-    batch_run = BatchRunner(
-            ForagingModel,
-            variable_params,
-            fixed_params,
-            iterations=3,
-            max_steps=10,
-            model_reporters={"Gini": compute_gini} #Reports gini coeff (defined above) at the end of each run (not after each step)
-        )
-
-    batch_run.run_all()
-    
-    run_data = batch_run.get_model_vars_dataframe()
-    run_data.head()
-    plt.scatter(run_data.N, run_data.Gini)
-    plt.show()
-    
-
-
-
-
-
-
-
-
-
+    def sexual_reprod(self):
+        #Rabbits in the same location
+        cellmates = self.model.grid.get_cell_list_contents([self.pos])
+        cellmates = [obj for obj in cellmates if isinstance(obj, Rabbit)] #Don't give carrot to plants
+        if cellmates:
+            for cellmate in cellmates:
+                if cellmate.sex != self.sex:
+                    match = random.random()
+                    if self.reprod_rate > match:
+                        sex = bool(random.getrandbits(1))
+                        new_id, all_ids = self.model.get_next_id() 
+                        a = Rabbit(new_id, self.model, sex)
+                        self.model.grid.place_agent(a, self.pos)
+                        self.model.schedule.add(a)
+                        print("HO WAW!! Rabbit {} and {} made baby {}!!".format(self.unique_id, cellmate.unique_id, a.unique_id))
+                break #Only reproducing with on rabbit per turn 
