@@ -11,8 +11,9 @@ from mesa.batchrunner import BatchRunner
 import random
 import matplotlib.pyplot as plt
 import numpy as np
+import logging
 
-from agents import Rabbit, Plant
+from agents import Rabbit, Plant, Fox
 
 """
 To add : 
@@ -22,13 +23,6 @@ To add :
 """
 
 #function to compute values for the datacollector
-def compute_gini(model):
-    rabbits = [agent for agent in model.schedule.agents if isinstance(agent, Rabbit)]
-    agent_carrots = [agent.carrot for agent in rabbits]
-    x = sorted(agent_carrots)
-    N = model.num_agents
-    B = sum( xi * (N-i) for i,xi in enumerate(x) ) / (N*sum(x))
-    return (1 + (1/N) - 2*B)
 
 def compute_population_r(model):
     return len([agent for agent in model.schedule.agents if isinstance(agent, Rabbit)])
@@ -42,13 +36,27 @@ def average_rabbit_health(model):
     return sum(agent_health) / len(agent_health)
 
 
+def setup_logger(logger_name, log_file, level=logging.INFO):
+    l = logging.getLogger(logger_name)
+    formatter = logging.Formatter('%(asctime)s : %(message)s')
+    fileHandler = logging.FileHandler(log_file, mode='w')
+    fileHandler.setFormatter(formatter)
+    streamHandler = logging.StreamHandler()
+    streamHandler.setFormatter(formatter)
+
+    l.setLevel(level)
+    l.addHandler(fileHandler)
+    l.addHandler(streamHandler)    
+
+
 class ForagingModel(Model):
-    def __init__(self, R, P, width, height):
+    def __init__(self, R, P, F, width, height):
         
         #Number of rabbits and plants
         self.num_agents = R
         self.num_plants = P
-        
+        self.num_foxes = F
+
         #Create space
         self.grid = MultiGrid(width, height, True)
         
@@ -59,10 +67,20 @@ class ForagingModel(Model):
         #If set to True, obviously never stops
         self.running = True
 
+        #Initialize loggers 
+        setup_logger('rabbits_logger', "logs/rabbits_agents.log")
+        setup_logger('plants_logger', "logs/plants_agents.log")
+        setup_logger('fox_logger', "logs/fox_agents.log")
+        setup_logger('model_logger', "logs/model.log")
+        rabbits_logger = logging.getLogger('rabbits_logger')
+        plants_logger = logging.getLogger('plants_logger')
+        fox_logger = logging.getLogger('fox_logger')
+        model_logger = logging.getLogger('model_logger')
+
         # Create Rabbits
         for i in range(self.num_agents):
             sex = bool(random.getrandbits(1))
-            a = Rabbit(i, self, sex)
+            a = Rabbit(i, self, sex, rabbits_logger)
             self.schedule.add(a)
 
             #Agent is activated in a random grid cell
@@ -72,14 +90,26 @@ class ForagingModel(Model):
         
         # Create Plants
         for i in range(self.num_plants):
-            a = Plant(i+self.num_agents, self)
+            a = Plant(i+self.num_agents, self, plants_logger)
             self.schedule.add(a)
 
             #Agent is activated in a random grid cell
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
-            self.current_id = i+1
+        
+        # Create Foxes
+        for i in range(self.num_foxes):
+            current_id = self.num_agents+self.num_plants+i
+            sex = bool(random.getrandbits(1))
+            a = Fox(current_id, self, sex, fox_logger)
+            self.schedule.add(a)
+
+            #Agent is activated in a random grid cell
+            x = self.random.randrange(self.grid.width)
+            y = self.random.randrange(self.grid.height)
+            self.grid.place_agent(a, (x, y))
+        
         
         #Initialize the data collector when model is initialized
         #self.datacollector = DataCollector(
@@ -110,7 +140,8 @@ if __name__=="__main__":
     fixed_params = {
         "width": 10,
         "height": 10,
-        "P" : 15
+        "P" : 15,
+        "F" : 5
         }
     #Variable number of rabbits
     variable_params = {"R": range(10, 30, 5)}
