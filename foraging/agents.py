@@ -23,7 +23,9 @@ To add :
         - Sexual for rabbits - Done
         - shoots for plants - Done
     - move cellmates in step function - Done
-    - Add different kind of agent?
+    - Add foxes - Done
+    - add run.py
+    - add stop condition if species get extinct
     - Comment
     - Readme
     - Remove useless libs
@@ -44,12 +46,17 @@ class Plant(Agent):
         #initial size
         self.size = 0
         self.eatable = False
-        self.reprod_rate = 0.02
+        self.reprod_rate = 0.003
+
 
         self.logger = logger
 
     def step(self):
+        #Growing
         self.grow()
+
+        #asexual reproduction
+        self.parthenogenesis()
 
     def grow(self):
         if self.size < self.grow_time:
@@ -59,13 +66,16 @@ class Plant(Agent):
         else : 
             raise ValueError("Plant size bigger than max size")
 
-    def pathenogenesis(self):
-        new_id, all_ids = self.model.get_next_id() 
-        a = Plant(new_id, self.model, self.logger)
-        self.model.grid.place_agent(a, self.pos)
-        self.model.schedule.add(a)
-        self.logger.info("PLant {} made an offshoot : {}".format(self.unique_id, a.unique_id))
+    def parthenogenesis(self):
 
+        match = random.random()
+        if self.reprod_rate > match:
+            new_id, all_ids = self.model.get_next_id() 
+            a = Plant(new_id, self.model, self.logger)
+            self.model.grid.place_agent(a, self.pos)
+            self.model.schedule.add(a)
+            #print("PLant {} made an offshoot : {}".format(self.unique_id, a.unique_id))
+            #self.logger.info("PLant {} made an offshoot : {}".format(self.unique_id, a.unique_id))
 
 
 class Rabbit(Agent):
@@ -76,7 +86,7 @@ class Rabbit(Agent):
         
         self.unique_id = unique_id
         self.sex = sex
-        self.reprod_rate = 0.2 #they fuck like bunnies
+        self.reprod_rate = 0.3 #they fuck like bunnies
 
         self.logger = logger
 
@@ -166,7 +176,7 @@ class Fox(Agent):
     def __init__(self, unique_id:int, model, sex:bool, logger):
         super().__init__(unique_id, model)
         self.max_health = 10
-        self.health = 5
+        self.health = 10
         
         self.unique_id = unique_id
         self.sex = sex
@@ -185,7 +195,6 @@ class Fox(Agent):
         #reproduce if possible
         self.sexual_reprod(cellmates)
 
-
     def move(self):
         """
         Makes the rabbit moves to a neighbouring cell
@@ -201,12 +210,14 @@ class Fox(Agent):
     def feed(self, cellmates):
         
         eaten = self.eat_rabbit(cellmates)
+        """ 
         if eaten :
             self.health = self.max_health
         else : 
             self.move()
             eaten = self.eat_rabbit
-
+        """ 
+        #self.logger.info("{} has eaten {}".format(self.unique_id, eaten))
         if eaten :
             self.health = self.max_health
         else:
@@ -216,11 +227,13 @@ class Fox(Agent):
         if self.health == 0:
             self.model.grid.remove_agent(self)
             self.model.schedule.remove(self)
-            print("Fox {} is dead :'(".format(self.unique_id))
+            #print("Fox {} is dead :'(".format(self.unique_id))
+            self.logger.info("Fox {} is dead :'(".format(self.unique_id))
 
     def eat_rabbit(self, cellmates):
         rabbit = [obj for obj in cellmates if isinstance(obj, Rabbit)]
-        if len(rabbit) >= 1:
+        #self.logger.info(rabbit)
+        if rabbit:
             other = self.random.choice(rabbit)
             self.model.grid.remove_agent(other)
             self.model.schedule.remove(other)
@@ -233,7 +246,7 @@ class Fox(Agent):
         """
         To adapt for foxes
         """
-        #Rabbits in the same location
+        #Foxes in the same location
         cellmates = [obj for obj in cellmates if isinstance(obj, Fox)]
         if cellmates:
             for cellmate in cellmates:

@@ -15,13 +15,6 @@ import logging
 
 from agents import Rabbit, Plant, Fox
 
-"""
-To add : 
-    - Kill the rabbits when they can't eat?
-    - Add carrot ressources on the map?
-    - Add different kind of agent?
-"""
-
 #function to compute values for the datacollector
 
 def compute_population_r(model):
@@ -29,6 +22,9 @@ def compute_population_r(model):
 
 def compute_population_p(model):
     return len([agent for agent in model.schedule.agents if isinstance(agent, Plant)])
+
+def compute_population_f(model):
+    return len([agent for agent in model.schedule.agents if isinstance(agent, Fox)])
 
 def average_rabbit_health(model):
     rabbits = [agent for agent in model.schedule.agents if isinstance(agent, Rabbit)]
@@ -118,7 +114,8 @@ class ForagingModel(Model):
         self.datacollector = DataCollector(
                 model_reporters={
                     "Rabbits": compute_population_r, 
-                    "Plants":compute_population_p}) #agent-level data
+                    "Plants":compute_population_p,
+                    "Foxes":compute_population_f}) #agent-level data
 
     def step(self):
         #collect data
@@ -130,49 +127,4 @@ class ForagingModel(Model):
         next_one = max([agent.unique_id for agent in self.schedule.agents])+1
         all_ids = [agent.unique_id for agent in self.schedule.agents]
         return next_one, all_ids
-
-if __name__=="__main__":
-    #######
-    #Run a batch of models
-    #######
-    #Parameters settings
-    #Fixed grid size
-    fixed_params = {
-        "width": 10,
-        "height": 10,
-        "P" : 15,
-        "F" : 5
-        }
-    #Variable number of rabbits
-    variable_params = {"R": range(10, 30, 5)}
-
-    #Batch running instanciation
-    batch_run = BatchRunner(
-            ForagingModel,
-            variable_params,
-            fixed_params,
-            iterations=3,
-            max_steps=60,
-            model_reporters={
-                "Rabbits": compute_population_r,
-                "Plants": compute_population_p} #Reports gini coeff (defined above) at the end of each run (not after each step)
-        )
-
-    batch_run.run_all()
-    
-    run_data = batch_run.get_model_vars_dataframe()
-    run_data.head()
-    #plt.scatter(run_data.R, run_data.Plants)
-    #plt.show()
-    plt.scatter(run_data.R, run_data.Rabbits)
-    plt.show()
-    
-
-
-
-
-
-
-
-
 
