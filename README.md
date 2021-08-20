@@ -30,3 +30,21 @@ They are mostly similars to rabbit with a few differences :
   - They are less likely to reproduce in any given encounter with an opposite sex fox
   - They can't accumulate rabbits the way rabbits accumulate carrots
   - Nevertheless, they can spend more turn without eating, and starve much less frequently
+
+### To do list
+    - Move rabbits feeding to new method - Done
+    - Add carrot ressources on the map?- Done
+    - Datacollector at agent level - Check how to collect one species - ok
+    - Make rabbits find plants - ok
+    - Add reproduction - Done
+        - Sexual for rabbits - Done
+        - shoots for plants - Done
+    - move cellmates in step function - Done
+    - Add foxes - Done
+    - add run.py
+    - add stop condition if species get extinct
+    - Comment
+    - Readme
+    - Remove useless libs
+    - add the name=main from model to run.py
+    - Removes prints, add logger -> check first if agents moved to different files
