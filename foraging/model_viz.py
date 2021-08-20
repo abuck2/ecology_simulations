@@ -25,7 +25,9 @@ def agent_portrayal(agent):
 chart = ChartModule([{"Label": "Rabbits",
                       "Color": "Red"},
                       {"Label":"Foxes",
-                        "Color":"Black"}],
+                        "Color":"Black"},
+                      {"Label":"Plants",
+                        "Color":"Green"}],
                     data_collector_name='datacollector')
 
 
