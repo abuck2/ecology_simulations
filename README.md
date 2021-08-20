@@ -36,19 +36,19 @@ They are mostly similars to rabbit with a few differences :
 
 ### To do list
     
-   - [ ] Move rabbits feeding to new method - Done
-   - [ ] Add carrot ressources on the map?- Done
-   - Datacollector at agent level - Check how to collect one species - ok
-   - Make rabbits find plants - ok
-   - Add reproduction - Done
-       - Sexual for rabbits - Done
-       - shoots for plants - Done
-   - move cellmates in step function - Done
-   - Add foxes - Done
-   - add run.py
-   - add stop condition if species get extinct
-   - Comment
-   - Readme
-   - Remove useless libs
-   - add the name=main from model to run.py
-   - Removes prints, add logger -> check first if agents moved to different files
+   - [x] Move rabbits feeding to new method
+   - [x] Add carrot ressources on the map
+   - [x] Datacollector at agent level
+   - [x] Make rabbits find plants
+   - [x] Add reproduction
+       - [x] Sexual for rabbits
+       - [x] shoots for plants
+   - [x] move cellmates in step function
+   - [x] Add foxes
+   - [x] add run.py
+   - [ ] add stop condition if species get extinct
+   - [x] add vizualisations
+   - [ ] Comment
+   - [x] Readme
+   - [ ] Remove useless libs
+   - [ ] Removes prints, add logger -> check first if agents moved to different files
