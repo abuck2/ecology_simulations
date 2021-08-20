@@ -1,7 +1,5 @@
-# simulations
-Moran processes and simulations
 
-In "simulation" folder :
+# In "simulation" folder :
 # Model
 A simple agent-based model on a toroidal grid
 
