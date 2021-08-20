@@ -56,7 +56,7 @@ class Plant(Agent):
         self.grow()
 
         #asexual reproduction
-        self.parthenogenesis()
+        self.cuttings()
 
     def grow(self):
         if self.size < self.grow_time:
@@ -66,11 +66,11 @@ class Plant(Agent):
         else : 
             raise ValueError("Plant size bigger than max size")
 
-    def parthenogenesis(self):
+    def cuttings(self):
 
         match = random.random()
         if self.reprod_rate > match:
-            #Where does the seed falls
+            #Where does the cutting falls
             proximity = self.model.grid.get_neighborhood(
                 self.pos,
                 moore=True,
