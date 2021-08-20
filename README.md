@@ -46,6 +46,7 @@ They are mostly similars to rabbit with a few differences :
    - [x] move cellmates in step function
    - [x] Add foxes
    - [x] add run.py
+   - [ ] add plants dispersion
    - [ ] add stop condition if species get extinct
    - [x] add vizualisations
    - [ ] Comment
