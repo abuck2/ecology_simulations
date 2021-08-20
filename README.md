@@ -1,5 +1,5 @@
 
-# In "simulation" folder :
+# In "foraging" folder :
 # Model
 A simple agent-based model on a toroidal grid
 
