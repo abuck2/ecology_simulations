@@ -49,8 +49,8 @@ def run(graphics:bool, steps:int, R:int, P:int, F:int, width:int, height:int):
             model.step()
     data = model.datacollector.get_model_vars_dataframe()
     data.Rabbits.plot()
-    #data.Plants.plot()
-    data.Foxes.plot()
+    data.Plants.plot()
+    #data.Foxes.plot()
     plt.show()
 
 
@@ -59,4 +59,5 @@ def run(graphics:bool, steps:int, R:int, P:int, F:int, width:int, height:int):
 if __name__=="__main__":
     #run(graphics=False, steps = 2000, R=15, P=10, F=1, width=30, height=30)
     #run(graphics=False, steps = 2000, R=50, P=150, F=30, width=30, height=30)
-    run(graphics=False, steps = 20000, R=50, P=150, F=60, width=30, height=30)
+    run(graphics=False, steps = 20000, R=50, P=1500, F=60, width=30, height=30)
+
