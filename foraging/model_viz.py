@@ -31,14 +31,21 @@ chart = ChartModule([{"Label": "Rabbits",
                     data_collector_name='datacollector')
 
 
+chart = ChartModule([{"Label": "Rabbits",
+                      "Color": "Red"},
+                      {"Label":"Foxes",
+                        "Color":"Black"}],
+                    data_collector_name='datacollector')
+
+
 
 
 
 if __name__=="__main__":
-    grid = CanvasGrid(agent_portrayal, 30, 30, 500, 500)#XcellsNumber, YCellsNumber, XPixels, YPixels
+    grid = CanvasGrid(agent_portrayal, 20, 20, 500, 500)#XcellsNumber, YCellsNumber, XPixels, YPixels
     server = ModularServer(ForagingModel,
                        [grid, chart],
                        "Foraging Model",
-                       {"R":20, "P":150, "F":2, "width":30, "height":30})
+                       {"R":50, "P":150, "F":60, "width":20, "height":20})
     server.port = 8521 # The default
     server.launch()

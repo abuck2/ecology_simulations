@@ -46,7 +46,7 @@ class Plant(Agent):
         #initial size
         self.size = 0
         self.eatable = False
-        self.reprod_rate = 0.003
+        self.reprod_rate = 0.05
 
 
         self.logger = logger
@@ -70,12 +70,26 @@ class Plant(Agent):
 
         match = random.random()
         if self.reprod_rate > match:
-            new_id, all_ids = self.model.get_next_id() 
-            a = Plant(new_id, self.model, self.logger)
-            self.model.grid.place_agent(a, self.pos)
-            self.model.schedule.add(a)
-            #print("PLant {} made an offshoot : {}".format(self.unique_id, a.unique_id))
-            #self.logger.info("PLant {} made an offshoot : {}".format(self.unique_id, a.unique_id))
+            #Where does the seed falls
+            proximity = self.model.grid.get_neighborhood(
+                self.pos,
+                moore=True,
+                include_center=True
+                )
+            dispersion = self.random.choice(proximity)
+
+            #Competition from other plants
+            neighbours = self.model.grid.get_cell_list_contents([dispersion])
+            neighbours = [obj for obj in neighbours if isinstance(obj, Plant)]
+            competition_factor = 1-(1/float(len(neighbours)+1)) #0 if no plants present, 0.5 for 1, 0.66 for 2,...
+
+            seed_resistance = random.random()
+            if seed_resistance > competition_factor:
+                new_id, all_ids = self.model.get_next_id() 
+                a = Plant(new_id, self.model, self.logger)
+                self.model.grid.place_agent(a, dispersion)
+                self.model.schedule.add(a)
+                #self.logger.info("PLant {} made an offshoot : {}".format(self.unique_id, a.unique_id))
 
 
 class Rabbit(Agent):
@@ -86,7 +100,7 @@ class Rabbit(Agent):
         
         self.unique_id = unique_id
         self.sex = sex
-        self.reprod_rate = 0.3 #they fuck like bunnies
+        self.reprod_rate = 0.5 #they fuck like bunnies
 
         self.logger = logger
 
@@ -180,7 +194,7 @@ class Fox(Agent):
         
         self.unique_id = unique_id
         self.sex = sex
-        self.reprod_rate = 0.1 #Lower r than rabbits
+        self.reprod_rate = 0.3 #Lower r than rabbits
 
         self.logger = logger
 
@@ -256,7 +270,13 @@ class Fox(Agent):
                         sex = bool(random.getrandbits(1))
                         new_id, all_ids = self.model.get_next_id() 
                         a = Fox(new_id, self.model, sex, self.logger)
-                        self.model.grid.place_agent(a, self.pos)
+                        try :
+                            self.model.grid.place_agent(a, self.pos)
+                        except Exception as e:
+                            print(a, self.pos)
+                            raise ValueError(e)
+
+
                         self.model.schedule.add(a)
                         print("HO WAW!! Rabbit {} and {} made baby {}!!".format(self.unique_id, cellmate.unique_id, a.unique_id))
                 break #Only reproducing with on rabbit per turn 
