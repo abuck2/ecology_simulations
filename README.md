@@ -35,8 +35,8 @@ They are mostly similars to rabbit with a few differences :
 
 
 ### To do list
-    - Move rabbits feeding to new method - Done
-    - Add carrot ressources on the map?- Done
+    - [ ] Move rabbits feeding to new method - Done
+    - [ ] Add carrot ressources on the map?- Done
     - Datacollector at agent level - Check how to collect one species - ok
     - Make rabbits find plants - ok
     - Add reproduction - Done
