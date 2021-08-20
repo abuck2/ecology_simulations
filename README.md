@@ -3,6 +3,8 @@
 # Model
 A simple agent-based model on a toroidal grid
 
+To run the model, just clone and run python3 foraging/model_viz.py
+
 # Agents
 ## Plants 
 Plants are fixed, and reproduce asexually by making offshoots. Every turn they grow until they are fully grown and eatable by rabbits
@@ -30,6 +32,7 @@ They are mostly similars to rabbit with a few differences :
   - They are less likely to reproduce in any given encounter with an opposite sex fox
   - They can't accumulate rabbits the way rabbits accumulate carrots
   - Nevertheless, they can spend more turn without eating, and starve much less frequently
+
 
 ### To do list
     - Move rabbits feeding to new method - Done
