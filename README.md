@@ -55,7 +55,7 @@ With the right parameters, populations should start stabilizing :
        - [x] shoots for plants
    - [x] move cellmates in step function
    - [x] Add foxes
-   - [ ] add cuttings
+   - [x] add cuttings
    - [x] add plants dispersion
    - [ ] add stop condition if species get extinct
    - [x] add vizualisations
@@ -63,3 +63,4 @@ With the right parameters, populations should start stabilizing :
    - [x] Readme
    - [ ] Remove useless libs
    - [ ] Removes prints, add logger -> check first if agents moved to different files
+   - [ ] Grid size in viz
