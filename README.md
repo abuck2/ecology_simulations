@@ -34,6 +34,11 @@ They are mostly similars to rabbit with a few differences :
   - Nevertheless, they can spend more turn without eating, and starve much less frequently
 
 
+The interface should look like that : 
+
+![0.5](example_viz.png)
+
+
 ### To do list
     
    - [x] Move rabbits feeding to new method
