@@ -38,6 +38,11 @@ The interface should look like that :
 
 ![0.5](example_viz.png)
 
+With the right parameters, populations should start stabilizing :
+
+![0.5](example_rabbit_pop.png)
+
+
 
 ### To do list
     
