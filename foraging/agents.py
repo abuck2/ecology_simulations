@@ -35,7 +35,7 @@ To add :
 
 
 class Plant(Agent):
-    def __init__(self, unique_id, model, logger, grow_time = 5):
+    def __init__(self, unique_id, model, logger, grow_time:int = 5, reprod_rate:float = 0.05):
         super().__init__(unique_id, model)
         self.unique_id = unique_id
         
@@ -46,7 +46,10 @@ class Plant(Agent):
         #initial size
         self.size = 0
         self.eatable = False
-        self.reprod_rate = 0.05
+        if reprod_rate < 1 and reprod_rate >=0:
+            self.reprod_rate = reprod_rate
+        else :
+            raise ValueError("Plants reproduction rate must be between 0 and 1")
 
 
         self.logger = logger
@@ -93,14 +96,17 @@ class Plant(Agent):
 
 
 class Rabbit(Agent):
-    def __init__(self, unique_id:int, model, sex:bool, logger):
+    def __init__(self, unique_id:int, model, sex:bool, logger, reprod_rate:float=0.5):
         super().__init__(unique_id, model)
         self.carrot = 5
         self.health = 4
         
         self.unique_id = unique_id
         self.sex = sex
-        self.reprod_rate = 0.5 #they fuck like bunnies
+        if reprod_rate < 1 and reprod_rate >=0:
+            self.reprod_rate = reprod_rate
+        else :
+            raise ValueError("Plants reproduction rate must be between 0 and 1")
 
         self.logger = logger
 
@@ -187,14 +193,17 @@ class Rabbit(Agent):
                         print("HO WAW!! Rabbit {} and {} made baby {}!!".format(self.unique_id, cellmate.unique_id, a.unique_id))
                 break #Only reproducing with on rabbit per turn 
 class Fox(Agent):
-    def __init__(self, unique_id:int, model, sex:bool, logger):
+    def __init__(self, unique_id:int, model, sex:bool, logger, reprod_rate:float=0.3):
         super().__init__(unique_id, model)
         self.max_health = 10
         self.health = 10
         
         self.unique_id = unique_id
         self.sex = sex
-        self.reprod_rate = 0.3 #Lower r than rabbits
+        if reprod_rate < 1 and reprod_rate >=0:
+            self.reprod_rate = reprod_rate
+        else :
+            raise ValueError("Plants reproduction rate must be between 0 and 1")
 
         self.logger = logger
 
@@ -204,10 +213,10 @@ class Fox(Agent):
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
         #Moving
         self.move()
-        #eating rabbits
-        self.feed(cellmates)
         #reproduce if possible
         self.sexual_reprod(cellmates)
+        #eating rabbits
+        self.feed(cellmates)
 
     def move(self):
         """

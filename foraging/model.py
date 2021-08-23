@@ -46,7 +46,8 @@ def setup_logger(logger_name, log_file, level=logging.INFO):
 
 
 class ForagingModel(Model):
-    def __init__(self, R, P, F, width, height):
+    def __init__(self, R, P, F, width, height, 
+            p_reprod_rate:float=0.05, r_reprod_rate:float=0.5, f_reprod_rate:float=0.3):
         
         #Number of rabbits and plants
         self.num_agents = R
@@ -76,7 +77,7 @@ class ForagingModel(Model):
         # Create Rabbits
         for i in range(self.num_agents):
             sex = bool(random.getrandbits(1))
-            a = Rabbit(i, self, sex, rabbits_logger)
+            a = Rabbit(i, self, sex, rabbits_logger, r_reprod_rate)
             self.schedule.add(a)
 
             #Agent is activated in a random grid cell
@@ -86,7 +87,7 @@ class ForagingModel(Model):
         
         # Create Plants
         for i in range(self.num_plants):
-            a = Plant(i+self.num_agents, self, plants_logger)
+            a = Plant(i+self.num_agents, self, plants_logger, reprod_rate = p_reprod_rate)
             self.schedule.add(a)
 
             #Agent is activated in a random grid cell
@@ -98,7 +99,7 @@ class ForagingModel(Model):
         for i in range(self.num_foxes):
             current_id = self.num_agents+self.num_plants+i
             sex = bool(random.getrandbits(1))
-            a = Fox(current_id, self, sex, fox_logger)
+            a = Fox(current_id, self, sex, fox_logger, f_reprod_rate)
             self.schedule.add(a)
 
             #Agent is activated in a random grid cell
