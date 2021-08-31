@@ -12,8 +12,9 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 import logging
+from scipy.ndimage import gaussian_filter #to smoothe the map
 
-from agents import Rabbit, Plant, Fox
+from agents import Rabbit, Plant, Fox, Terrain
 
 #function to compute values for the datacollector
 
@@ -25,6 +26,10 @@ def compute_population_p(model):
 
 def compute_population_f(model):
     return len([agent for agent in model.schedule.agents if isinstance(agent, Fox)])
+
+def compute_population_t(model):
+    #Should be fixed
+    return len([agent for agent in model.schedule.agents if isinstance(agent, Terrain)])
 
 def average_rabbit_health(model):
     rabbits = [agent for agent in model.schedule.agents if isinstance(agent, Rabbit)]
@@ -114,7 +119,9 @@ class ForagingModel(Model):
             x = self.random.randrange(self.grid.width)
             y = self.random.randrange(self.grid.height)
             self.grid.place_agent(a, (x, y))
-        
+       
+        #Generate a map
+        self.generate_map(width, height, current_id+1)
         
         #Initialize the data collector when model is initialized
         #self.datacollector = DataCollector(
@@ -141,3 +148,21 @@ class ForagingModel(Model):
         all_ids = [agent.unique_id for agent in self.schedule.agents]
         return next_one, all_ids
 
+    def generate_map(self, width, height, current_id):
+        #Altitude needs to be kinda smooth, not just completely random - Maybe use a convolutional matrix
+        #implement movement dependant on altitude for rabbits and foxes (and plants for rivers)
+        #show in nicely in viz - In shades of grey + rivers, fill the whole cell
+        # plant : don't germinate in water
+        map_size = width*height
+        list_altitudes = random.choices(list(range(-30, 100)), k=map_size)
+        array_altitude = np.array(list_altitudes).reshape(width, height)
+        array_altitude = gaussian_filter(array_altitude, sigma=0.8, truncate = 1.5)
+
+        for x in range(0, width):
+            for y in range(0, height):
+                local_altitude = array_altitude[x, y]
+                a = Terrain(self, local_altitude, current_id+(width*y)+x)
+                self.grid.place_agent(a, (x, y))
+                #Probably useless?
+                self.schedule.add(a)
+        

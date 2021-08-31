@@ -13,14 +13,62 @@ def agent_portrayal(agent):
                  "r": 0.5}
     if isinstance(agent, Rabbit):
         portrayal["Color"] = "red"
-        portrayal["Layer"] = 0
+        portrayal["Layer"] = 1
     elif isinstance(agent, Fox):
         portrayal["Color"] = "grey"
         portrayal["Layer"] = 1
         portrayal["r"] = 0.2
-    else :
+    elif isinstance(agent, Plant):
         portrayal["Color"] = "green"
+        portrayal["Layer"] = 1
+        portrayal["r"] = 0.5 #Add rivers even if debug = False
+    else :
+        portrayal["r"] = 0
     return portrayal
+
+def agent_portrayal_with_altitude(agent):
+    # Potrayal
+    portrayal = {"Shape": "circle",
+                 "Color": "red",
+                 "Filled": "true",
+                 "Layer": 0,
+                 "r": 0.5}
+    if isinstance(agent, Rabbit):
+        portrayal["Color"] = "red"
+        portrayal["Layer"] = 0.7
+    elif isinstance(agent, Fox):
+        portrayal["Color"] = "yellow"
+        portrayal["Layer"] = 1
+        portrayal["r"] = 0.7
+    elif isinstance(agent, Plant):
+        portrayal["Color"] = "green"
+        portrayal["Layer"] = 1
+        portrayal["r"] = 0.7
+    elif isinstance(agent, Terrain):
+        if agent.altitude > 0:
+            portrayal["Shape"] = "rect"
+            portrayal["Color"] = altitude_shade(agent.altitude)
+            portrayal["Layer"] = 0
+            portrayal["h"] = 1
+            portrayal["w"] = 1
+        else :
+            #it's water
+            portrayal["Shape"] = "rect"
+            portrayal["h"] = 1
+            portrayal["w"] = 1
+            portrayal["Color"] = "blue"
+            portrayal["Layer"] = 0
+
+    return portrayal
+
+def altitude_shade(altitude):
+    #Approx returns an HTML code for a shade of grey depending on altitude, I stay in decimal base because I'm lazy
+    html_shade = "#"+str(int(100 -(altitude)))*3
+    return html_shade
+
+
+
+
 
 def foraging_visualisation(species_to_display:list = ["rabbits", "foxes"], size:list = [20,20], debug:bool = False):
     
@@ -31,7 +79,7 @@ def foraging_visualisation(species_to_display:list = ["rabbits", "foxes"], size:
     if "rabbits" in species_to_display : 
         species_disp.append({"Label": "Rabbits", "Color": "Red"})
     if "foxes" in species_to_display : 
-        species_disp.append({"Label": "Foxes", "Color": "Black"})
+        species_disp.append({"Label": "Foxes", "Color": "Yellow"})
     if "plants" in species_to_display : 
         species_disp.append({"Label": "Plants", "Color": "Green"})
     if not species_disp:
@@ -56,7 +104,11 @@ def foraging_visualisation(species_to_display:list = ["rabbits", "foxes"], size:
         "r_max_health": UserSettableParameter("slider", "Rabbits starving tolerance (steps)", 6, 2, 10, 1, 1),
         "f_max_health": UserSettableParameter("slider", "Foxes starving tolerance (steps)", 10, 5, 20, 1, 1)
     }
-    grid = CanvasGrid(agent_portrayal, size[0], size[1], 500, 500)#XcellsNumber, YCellsNumber, XPixels, YPixels
+    if debug :
+        grid = CanvasGrid(agent_portrayal_with_altitude, size[0], size[1], 500, 500)#XcellsNumber, YCellsNumber, XPixels, YPixels
+    else : 
+        grid = CanvasGrid(agent_portrayal, size[0], size[1], 500, 500)#XcellsNumber, YCellsNumber, XPixels, YPixels
+
     server = ModularServer(ForagingModel,
                        [grid, chart],
                        "Foraging Model",
@@ -69,4 +121,4 @@ def foraging_visualisation(species_to_display:list = ["rabbits", "foxes"], size:
 
 
 if __name__=="__main__":
-    foraging_visualisation(debug = False)
+    foraging_visualisation(debug = True)

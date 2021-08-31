@@ -13,28 +13,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import logging
 
-"""
-To add :
-    - Move rabbits feeding to new method - Done
-    - Add carrot ressources on the map?- Done
-    - Datacollector at agent level - Check how to collect one species - ok
-    - Make rabbits find plants - ok
-    - Add reproduction - Done
-        - Sexual for rabbits - Done
-        - shoots for plants - Done
-    - move cellmates in step function - Done
-    - Add foxes - Done
-    - add run.py
-    - add stop condition if species get extinct
-    - Comment
-    - Readme
-    - Remove useless libs
-    - add the name=main from model to run.py
-    - Removes prints, add logger -> check first if agents moved to different files
-"""
-
 
 class Plant(Agent):
+    
     def __init__(self, unique_id, model, logger, grow_time:int = 5, reprod_rate:float = 0.05):
         super().__init__(unique_id, model)
         self.unique_id = unique_id
@@ -83,11 +64,14 @@ class Plant(Agent):
 
             #Competition from other plants
             neighbours = self.model.grid.get_cell_list_contents([dispersion])
+            conditions = [obj for obj in neighbours if isinstance(obj, Terrain)]
             neighbours = [obj for obj in neighbours if isinstance(obj, Plant)]
+            print(conditions)
             competition_factor = 1-(1/float(len(neighbours)+1)) #0 if no plants present, 0.5 for 1, 0.66 for 2,...
 
             seed_resistance = random.random()
-            if seed_resistance > competition_factor:
+            if seed_resistance > competition_factor and conditions[0].altitude > 0 :
+            #if seed_resistance > competition_factor :
                 new_id, all_ids = self.model.get_next_id() 
                 a = Plant(new_id, self.model, self.logger, reprod_rate = self.model.p_reprod_rate)
                 self.model.grid.place_agent(a, dispersion)
@@ -139,19 +123,19 @@ class Rabbit(Agent):
     def feed(self):
         #Feeding - maybe move to another method
         if self.carrot == 0:
-            print("Rabbit {} ate all the carrots...".format(self.unique_id))
+            self.logger.info("Rabbit {} ate all the carrots...".format(self.unique_id))
             self.health -= 1
             # Kill the rabbit if he spend a few days without carrots
             if self.health == 0:
                 self.model.grid.remove_agent(self)
                 self.model.schedule.remove(self)
-                print("Rabbit {} is dead :'(".format(self.unique_id))
+                self.logger.info("Rabbit {} is dead :'(".format(self.unique_id))
 
         elif self.carrot < 5:
             self.carrot -= 1
             self.health = 5
             #self.logger.info("Rabbit {} eats a carrot!!".format(self.unique_id))
-            print("Rabbit {} eats a carrot!!".format(self.unique_id))
+            self.logger.info("Rabbit {} eats a carrot!!".format(self.unique_id))
         
         else :
             self.give_carrot()
@@ -164,7 +148,7 @@ class Rabbit(Agent):
             other = self.random.choice(cellmates)
             other.carrot += 1
             self.carrot -= 1
-            print("Rabbit {} is giving a carrot to rabbit {}!!".format(self.unique_id, other.unique_id))
+            self.logger.info("Rabbit {} is giving a carrot to rabbit {}!!".format(self.unique_id, other.unique_id))
 
     def extract_carrot(self, cellmates):
         plants_material = [obj for obj in cellmates if isinstance(obj, Plant)] #Don't make carrots from rabbits!!
@@ -173,9 +157,9 @@ class Rabbit(Agent):
             other = self.random.choice(plants_material)
             self.model.grid.remove_agent(other)
             self.model.schedule.remove(other)
-            print("Rabbit {} has found a carrot!!!!!".format(self.unique_id))
+            self.logger.info("Rabbit {} has found a carrot!!!!!".format(self.unique_id))
             self.carrot += 1
-            print("Rabbit {} is giving a carrot to rabbit {}!!".format(self.unique_id, other.unique_id))
+            self.logger.info("Rabbit {} is giving a carrot to rabbit {}!!".format(self.unique_id, other.unique_id))
 
     def sexual_reprod(self, cellmates):
         #Rabbits in the same location
@@ -191,7 +175,7 @@ class Rabbit(Agent):
                                 reprod_rate = self.model.r_reprod_rate, max_health = self.model.r_max_health)
                         self.model.grid.place_agent(a, self.pos)
                         self.model.schedule.add(a)
-                        print("HO WAW!! Rabbit {} and {} made baby {}!!".format(self.unique_id, cellmate.unique_id, a.unique_id))
+                        self.logger.info("HO WAW!! Rabbit {} and {} made baby {}!!".format(self.unique_id, cellmate.unique_id, a.unique_id))
                 break #Only reproducing with on rabbit per turn 
 class Fox(Agent):
     def __init__(self, unique_id:int, model, sex:bool, logger, reprod_rate:float=0.3, max_health:int = 10):
@@ -251,7 +235,7 @@ class Fox(Agent):
         if self.health == 0:
             self.model.grid.remove_agent(self)
             self.model.schedule.remove(self)
-            #print("Fox {} is dead :'(".format(self.unique_id))
+            #self.logger.info("Fox {} is dead :'(".format(self.unique_id))
             self.logger.info("Fox {} is dead :'(".format(self.unique_id))
 
     def eat_rabbit(self, cellmates):
@@ -261,7 +245,7 @@ class Fox(Agent):
             other = self.random.choice(rabbit)
             self.model.grid.remove_agent(other)
             self.model.schedule.remove(other)
-            print("Fox {} has eaten rabbit {}".format(self.unique_id, other.unique_id))
+            self.logger.info("Fox {} has eaten rabbit {}".format(self.unique_id, other.unique_id))
             return True
         else : 
             return False
@@ -284,10 +268,19 @@ class Fox(Agent):
                         try :
                             self.model.grid.place_agent(a, self.pos)
                         except Exception as e:
-                            print(a, self.pos)
+                            self.logger.warning(a, self.pos)
                             raise ValueError(e)
 
 
                         self.model.schedule.add(a)
-                        print("HO WAW!! Rabbit {} and {} made baby {}!!".format(self.unique_id, cellmate.unique_id, a.unique_id))
-                break #Only reproducing with on rabbit per turn 
+                        self.logger.info("HO WAW!! Rabbit {} and {} made baby {}!!".format(self.unique_id, cellmate.unique_id, a.unique_id))
+                break #Only reproducing with on rabbit per turn
+
+
+class Terrain():
+    def __init__(self, model, altitude, unique_id):
+        self.unique_id = unique_id
+        self.altitude = altitude
+
+    def step(self):
+        pass
