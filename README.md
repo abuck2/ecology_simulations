@@ -63,4 +63,6 @@ With the right parameters, populations should start stabilizing :
    - [x] Readme
    - [ ] Remove useless libs
    - [ ] Removes prints, add logger -> check first if agents moved to different files
-   - [ ] Grid size in viz
+   - [x] Grid size in viz
+   - [ ] terrain relief
+   - [ ] viz terrain relief : portrayal["r"] = altitude in model_viz
