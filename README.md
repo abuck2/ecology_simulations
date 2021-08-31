@@ -9,6 +9,11 @@ To run the model, just clone and run python3 foraging/model_viz.py
 ## Plants 
 Plants are fixed, and reproduce asexually by making offshoots. Every turn they grow until they are fully grown and eatable by rabbits
 
+For a plant to reproduc : 
+  - An cutting must fall on the ground in the neighbourhood of the plant with a fixed probability (r)
+  - The cutting will then have a lower chance of survival if there is already one plant or more growing nearby
+  - The cutting must be place in appropriate conditions (currently : not in water it's a land plant)
+
 ## Rabbits
 Every turn, rabbits must :
   - Move one case
@@ -64,5 +69,9 @@ With the right parameters, populations should start stabilizing :
    - [ ] Remove useless libs
    - [ ] Removes prints, add logger -> check first if agents moved to different files
    - [x] Grid size in viz
-   - [ ] terrain relief
-   - [ ] viz terrain relief : portrayal["r"] = altitude in model_viz
+   - [x] terrain relief
+   - [x] viz terrain relief : portrayal["r"] = altitude in model_viz
+   - [ ] Effect of terrain on plants reproduction
+   - [ ] Effect of terrain on animal movements
+   - [ ] Kill all organism initialized in water at the beginning of the simulation
+   - [ ] Add other terrain conditions for plants
