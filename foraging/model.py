@@ -47,13 +47,21 @@ def setup_logger(logger_name, log_file, level=logging.INFO):
 
 class ForagingModel(Model):
     def __init__(self, R, P, F, width, height, 
-            p_reprod_rate:float=0.05, r_reprod_rate:float=0.5, f_reprod_rate:float=0.3):
+            p_reprod_rate:float = 0.05, r_reprod_rate:float = 0.5, f_reprod_rate:float = 0.3,
+            r_max_health:int = 4, f_max_health:int = 10):
         
         #Number of rabbits and plants
         self.num_agents = R
         self.num_plants = P
         self.num_foxes = F
-
+        
+        
+        #set as model attributes for vizualisation purposes
+        self.p_reprod_rate = p_reprod_rate
+        self.r_reprod_rate = r_reprod_rate
+        self.f_reprod_rate = f_reprod_rate
+        self.r_max_health = r_max_health
+        self.f_max_health = f_max_health
         #Create space
         self.grid = MultiGrid(width, height, True)
         
@@ -77,7 +85,7 @@ class ForagingModel(Model):
         # Create Rabbits
         for i in range(self.num_agents):
             sex = bool(random.getrandbits(1))
-            a = Rabbit(i, self, sex, rabbits_logger, r_reprod_rate)
+            a = Rabbit(i, self, sex, rabbits_logger, reprod_rate = self.r_reprod_rate, max_health = r_max_health)
             self.schedule.add(a)
 
             #Agent is activated in a random grid cell
@@ -87,7 +95,7 @@ class ForagingModel(Model):
         
         # Create Plants
         for i in range(self.num_plants):
-            a = Plant(i+self.num_agents, self, plants_logger, reprod_rate = p_reprod_rate)
+            a = Plant(i+self.num_agents, self, plants_logger, reprod_rate = self.p_reprod_rate)
             self.schedule.add(a)
 
             #Agent is activated in a random grid cell
@@ -99,7 +107,7 @@ class ForagingModel(Model):
         for i in range(self.num_foxes):
             current_id = self.num_agents+self.num_plants+i
             sex = bool(random.getrandbits(1))
-            a = Fox(current_id, self, sex, fox_logger, f_reprod_rate)
+            a = Fox(current_id, self, sex, fox_logger, reprod_rate = self.f_reprod_rate, max_health = f_max_health)
             self.schedule.add(a)
 
             #Agent is activated in a random grid cell
@@ -114,9 +122,13 @@ class ForagingModel(Model):
         #        agent_reporters={"Carrot": "carrot"}) #agent-level data
         self.datacollector = DataCollector(
                 model_reporters={
-                    "Rabbits": compute_population_r, 
+                    "Rabbits":compute_population_r, 
                     "Plants":compute_population_p,
-                    "Foxes":compute_population_f}) #agent-level data
+                    "Foxes":compute_population_f,
+                    "plants_reprod": lambda model : model.p_reprod_rate,
+                    "foxes_reprod": lambda model : model.f_reprod_rate,
+                    "rabbits_reprod": lambda model : model.r_reprod_rate
+                    }) #agent-level data
 
     def step(self):
         #collect data

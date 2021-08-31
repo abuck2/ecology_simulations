@@ -89,17 +89,17 @@ class Plant(Agent):
             seed_resistance = random.random()
             if seed_resistance > competition_factor:
                 new_id, all_ids = self.model.get_next_id() 
-                a = Plant(new_id, self.model, self.logger)
+                a = Plant(new_id, self.model, self.logger, reprod_rate = self.model.p_reprod_rate)
                 self.model.grid.place_agent(a, dispersion)
                 self.model.schedule.add(a)
                 #self.logger.info("PLant {} made an offshoot : {}".format(self.unique_id, a.unique_id))
 
 
 class Rabbit(Agent):
-    def __init__(self, unique_id:int, model, sex:bool, logger, reprod_rate:float=0.5):
+    def __init__(self, unique_id:int, model, sex:bool, logger, reprod_rate:float=0.5, max_health:int=4):
         super().__init__(unique_id, model)
         self.carrot = 5
-        self.health = 4
+        self.health = max_health
         
         self.unique_id = unique_id
         self.sex = sex
@@ -187,16 +187,17 @@ class Rabbit(Agent):
                     if self.reprod_rate > match:
                         sex = bool(random.getrandbits(1))
                         new_id, all_ids = self.model.get_next_id() 
-                        a = Rabbit(new_id, self.model, sex, self.logger)
+                        a = Rabbit(new_id, self.model, sex, self.logger, 
+                                reprod_rate = self.model.r_reprod_rate, max_health = self.model.r_max_health)
                         self.model.grid.place_agent(a, self.pos)
                         self.model.schedule.add(a)
                         print("HO WAW!! Rabbit {} and {} made baby {}!!".format(self.unique_id, cellmate.unique_id, a.unique_id))
                 break #Only reproducing with on rabbit per turn 
 class Fox(Agent):
-    def __init__(self, unique_id:int, model, sex:bool, logger, reprod_rate:float=0.3):
+    def __init__(self, unique_id:int, model, sex:bool, logger, reprod_rate:float=0.3, max_health:int = 10):
         super().__init__(unique_id, model)
-        self.max_health = 10
-        self.health = 10
+        self.max_health = max_health
+        self.health = self.max_health
         
         self.unique_id = unique_id
         self.sex = sex
@@ -278,7 +279,8 @@ class Fox(Agent):
                     if self.reprod_rate > match:
                         sex = bool(random.getrandbits(1))
                         new_id, all_ids = self.model.get_next_id() 
-                        a = Fox(new_id, self.model, sex, self.logger)
+                        a = Fox(new_id, self.model, sex, self.logger, reprod_rate = self.model.f_reprod_rate, 
+                                max_health = self.model.f_max_health)
                         try :
                             self.model.grid.place_agent(a, self.pos)
                         except Exception as e:
