@@ -41,11 +41,11 @@ They are mostly similars to rabbit with a few differences :
 
 The interface should look like that : 
 
-![0.5](example_viz.png)
+![0.5](images/example_viz.png)
 
 With the right parameters, populations should start stabilizing :
 
-![0.5](example_rabbit_pop.png)
+![0.5](images/example_rabbit_pop.png)
 
 
 
