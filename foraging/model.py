@@ -17,7 +17,6 @@ from scipy.ndimage import gaussian_filter #to smoothe the map
 from agents import Rabbit, Plant, Fox, Terrain
 
 #function to compute values for the datacollector
-
 def compute_population_r(model):
     return len([agent for agent in model.schedule.agents if isinstance(agent, Rabbit)])
 
@@ -51,9 +50,23 @@ def setup_logger(logger_name, log_file, level=logging.INFO):
 
 
 class ForagingModel(Model):
-    def __init__(self, R, P, F, width, height, 
+    def __init__(self, R:int, P:int, F:int, width:int, height:int, 
             p_reprod_rate:float = 0.05, r_reprod_rate:float = 0.5, f_reprod_rate:float = 0.3,
             r_max_health:int = 4, f_max_health:int = 10):
+        """Initialize a mesa model
+
+        Args:
+            R (int): Number of initial rabbits
+            P (int): Number of initial plants
+            F (int): Number of initial foxes
+            width (int): Width of map, in number of cells
+            height (int): Height of map, in number of cells
+            p_reprod_rate (float, optional): Base reproduction rate of plants. Defaults to 0.05.
+            r_reprod_rate (float, optional): Base reproduction rate of rabbits. Defaults to 0.5.
+            f_reprod_rate (float, optional): Base reproduction rate of foxes. Defaults to 0.3.
+            r_max_health (int, optional): Maximum number of days a rabbit can spend without eating. Defaults to 4.
+            f_max_health (int, optional): Maximum number of days a fox can spend without eating. Defaults to 10.
+        """
         
         #Number of rabbits and plants
         self.num_agents = R
@@ -138,17 +151,31 @@ class ForagingModel(Model):
                     }) #agent-level data
 
     def step(self):
+        """Avance the scheduler one step and collect data
+        """
         #collect data
         self.datacollector.collect(self)
         #advance simulation one step
         self.schedule.step()
 
     def get_next_id(self):
+        """Compute next unique_id for a new agent
+
+        Returns:
+            tuple: (next_id:int, all_ids:list)
+        """
         next_one = max([agent.unique_id for agent in self.schedule.agents])+1
         all_ids = [agent.unique_id for agent in self.schedule.agents]
         return next_one, all_ids
 
-    def generate_map(self, width, height, current_id):
+    def generate_map(self, width:int, height:int, current_id:int):
+        """Generate the terrain on the map
+
+        Args:
+            width (int): width of the map
+            height (int): height of the map
+            current_id (int): id of the latest agent
+        """
         #Altitude needs to be kinda smooth, not just completely random - Maybe use a convolutional matrix
         #implement movement dependant on altitude for rabbits and foxes (and plants for rivers)
         #show in nicely in viz - In shades of grey + rivers, fill the whole cell
