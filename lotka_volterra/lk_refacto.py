@@ -8,10 +8,10 @@ class simple_simulation:
         pass
 
     def run(self, species_parameters:list = [{"name":"species_1", "initial_pop":5, "carrying_capacity":100, "reproductive_rate" : 2},\
-                    {"name":"species_2", "initial_pop":15, "carrying_capacity":50, "reproductive_rate" : 1}], \
-                species_effects:list = [{"type":"competition", "from_species":"species_1", "on_species":"species_2", "intensity":0.5},\
-                    {"type":"competition", "from_species":"species_2", "on_species":"species_1", "intensity":0.5},\
-                    {"type":"predation", "from_species":"species_1", "on_species":"species_2", "intensity":0.5}],\
+                    {"name":"species_2", "initial_pop":15, "carrying_capacity":100, "reproductive_rate" : 1}], \
+                species_effects:list = [{"type":"competition", "from_species":"species_1", "on_species":"species_2", "intensity":0.1},\
+                    {"type":"competition", "from_species":"species_2", "on_species":"species_1", "intensity":0.1},\
+                    {"type":"predation", "from_species":"species_1", "on_species":"species_2", "intensity":0.1}],\
                 steps:int = 20):
         
         #dict of species:pop
@@ -100,7 +100,6 @@ class simple_simulation:
                 and comp_effect["type"]=="competition"][0]["intensity"]
         except IndexError:
             one_on_two = 0
-
         point1 = [0, data_species_1["carrying_capacity"]/two_on_one]
         point2 = [data_species_1["carrying_capacity"], 0]
         x_values = [point1[0], point2[0]]
@@ -116,6 +115,8 @@ class simple_simulation:
         plt.plot(x_values, y_values)
         plt.annotate("Kj/aji", point3)
         plt.annotate("Kj", point4)
+        plt.xlabel(data_species_1["name"])
+        plt.ylabel(data_species_2["name"])
         
         plt.show()
 
