@@ -189,7 +189,7 @@ class ForagingModel(Model):
             for y in range(0, height):
                 local_altitude = array_altitude[x, y]
                 a = Terrain(self, local_altitude, current_id+(width*y)+x)
-                self.grid.place_agent(a, (x, y))
+                self.grid.place_agent(a, pos = (x, y))
                 #Probably useless?
                 self.schedule.add(a)
         

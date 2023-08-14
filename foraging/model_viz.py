@@ -99,15 +99,15 @@ def foraging_visualisation(species_to_display:list = ["rabbits", "foxes"], size:
         "P": 20,
         "F": 20,
         "p_reprod_rate": UserSettableParameter("slider", "Plants reproduction rate", 0.05, 0.01, 0.1, 0.01, 1), #Default, min, max, increment
-        "r_reprod_rate": UserSettableParameter("slider", "Rabbits reproduction rate", 0.5, 0.3, 0.9, 0.1, 1),
-        "f_reprod_rate": UserSettableParameter("slider", "Foxes reproduction rate", 0.3, 0.1, 0.7, 0.1, 1),
+        "r_reprod_rate": UserSettableParameter("slider", "Rabbits reproduction rate", 0.5, 0.1, 0.9, 0.05, 1),
+        "f_reprod_rate": UserSettableParameter("slider", "Foxes reproduction rate", 0.7, 0.1, 0.9, 0.05, 1),
         "r_max_health": UserSettableParameter("slider", "Rabbits starving tolerance (steps)", 6, 2, 10, 1, 1),
-        "f_max_health": UserSettableParameter("slider", "Foxes starving tolerance (steps)", 10, 5, 20, 1, 1)
+        "f_max_health": UserSettableParameter("slider", "Foxes starving tolerance (steps)", 15, 5, 25, 1, 1)
     }
     if debug :
         grid = CanvasGrid(agent_portrayal_with_altitude, size[0], size[1], 500, 500)#XcellsNumber, YCellsNumber, XPixels, YPixels
     else : 
-        grid = CanvasGrid(agent_portrayal, size[0], size[1], 500, 500)#XcellsNumber, YCellsNumber, XPixels, YPixels
+        grid = CanvasGrid(agent_portrayal_with_altitude, size[0], size[1], 500, 500)#XcellsNumber, YCellsNumber, XPixels, YPixels
 
     server = ModularServer(ForagingModel,
                        [grid, chart],
@@ -121,4 +121,4 @@ def foraging_visualisation(species_to_display:list = ["rabbits", "foxes"], size:
 
 
 if __name__=="__main__":
-    foraging_visualisation(debug = True)
+    foraging_visualisation(debug = False)

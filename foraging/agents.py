@@ -145,17 +145,27 @@ class Rabbit(Agent):
         
         #Agents on the same cell #shoud be move avec self.move()
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
-        #Moving
-        self.move()
         #extracting carrot
         self.extract_carrot(cellmates)
         #reproduce if possible
         self.sexual_reprod(cellmates)
         #eat
         self.feed()
+        #Moving
+        self.move(cellmates)
+        #Dies if not eating enough
+        self.dies()
+
+    def dies(self):
+        # Kill the rabbit if he spend a few days without carrots
+        if self.health == 0:
+            self.model.grid.remove_agent(self)
+            self.model.schedule.remove(self)
+            self.logger.info("Rabbit {} is dead :'(".format(self.unique_id))
+    
 
 
-    def move(self):
+    def move(self, cellmates):
         """
         Makes the rabbit moves to a neighbouring cell
         """
@@ -165,7 +175,34 @@ class Rabbit(Agent):
             include_center=False
         )
         new_position = self.random.choice(possible_steps)
-        self.model.grid.move_agent(self, new_position)
+        terrain_to_move = [agent for agent in self.model.schedule.agents if agent.pos == new_position and isinstance(agent, Terrain)]
+        future_altitude = terrain_to_move[0].altitude
+        current_altitude = [agent for agent in self.model.schedule.agents if agent.pos == new_position and isinstance(agent, Terrain)][0].altitude
+        if future_altitude<0:
+            pass
+        elif future_altitude<current_altitude:
+            self.model.grid.move_agent(self, new_position)
+            #extracting carrot
+            self.extract_carrot(cellmates)
+            #reproduce if possible
+            self.sexual_reprod(cellmates)
+            #eat
+            self.feed()
+        elif future_altitude<current_altitude/2:
+            self.model.grid.move_agent(self, new_position)
+            #extracting carrot
+            self.extract_carrot(cellmates)
+            #reproduce if possible
+            self.sexual_reprod(cellmates)
+            #eat
+            self.feed()
+            #Moving
+            self.move(cellmates)
+        elif future_altitude>=current_altitude:
+            self.model.grid.move_agent(self, new_position)
+        else :
+            raise ValueError("Weird thing going on when going from {} to {}".format(current_altitude, future_altitude))
+        
     
     def feed(self):
         """The rabbit will tries to eat a carrot. If he can't eat, the counter will decrease until he starves
@@ -173,11 +210,7 @@ class Rabbit(Agent):
         if self.carrot == 0:
             self.logger.info("Rabbit {} ate all the carrots...".format(self.unique_id))
             self.health -= 1
-            # Kill the rabbit if he spend a few days without carrots
-            if self.health == 0:
-                self.model.grid.remove_agent(self)
-                self.model.schedule.remove(self)
-                self.logger.info("Rabbit {} is dead :'(".format(self.unique_id))
+            
 
         elif self.carrot < 5:
             self.carrot -= 1
@@ -222,7 +255,7 @@ class Rabbit(Agent):
             cellmates (list): List of object in the same position as the rabbit instance
         """
         #Rabbits in the same location
-        cellmates = [obj for obj in cellmates if isinstance(obj, Rabbit)] #Don't give carrot to plants
+        cellmates = [obj for obj in cellmates if isinstance(obj, Rabbit)] #Look for partners
         if cellmates:
             for cellmate in cellmates:
                 if cellmate.sex != self.sex:
@@ -255,6 +288,7 @@ class Fox(Agent):
         super().__init__(unique_id, model)
         self.max_health = max_health
         self.health = self.max_health
+        self.eaten = False
         
         self.unique_id = unique_id
         self.sex = sex
@@ -274,24 +308,51 @@ class Fox(Agent):
         
         #Agents on the same cell
         cellmates = self.model.grid.get_cell_list_contents([self.pos])
-        #Moving
-        self.move()
         #reproduce if possible
         self.sexual_reprod(cellmates)
         #eating rabbits
         self.feed(cellmates)
+        #Moving
+        self.move(cellmates)
+        #Check if alive
+        self.death()
+        
 
-    def move(self):
+    def move(self, cellmates):
         """
         Makes the fox moves to a neighbouring cell
         """
+
         possible_steps = self.model.grid.get_neighborhood(
             self.pos,
             moore=True,
             include_center=False
         )
         new_position = self.random.choice(possible_steps)
-        self.model.grid.move_agent(self, new_position)
+        terrain_to_move = [agent for agent in self.model.schedule.agents if agent.pos == new_position and isinstance(agent, Terrain)]
+        future_altitude = terrain_to_move[0].altitude
+        current_altitude = [agent for agent in self.model.schedule.agents if agent.pos == new_position and isinstance(agent, Terrain)][0].altitude
+        if future_altitude<0:
+            pass
+        elif future_altitude<current_altitude:
+            self.model.grid.move_agent(self, new_position)
+            #reproduce if possible
+            self.sexual_reprod(cellmates)
+            #eating rabbits
+            self.feed(cellmates)
+        elif future_altitude<current_altitude/2:
+            self.model.grid.move_agent(self, new_position)
+            #reproduce if possible
+            self.sexual_reprod(cellmates)
+            #eating rabbits
+            self.feed(cellmates)
+            #Moving
+            self.move(cellmates)
+        elif future_altitude>=current_altitude:
+            self.model.grid.move_agent(self, new_position)
+        else :
+            raise ValueError("Weird thing going on when going from {} to {}".format(current_altitude, future_altitude))
+        
     
     def feed(self, cellmates):
         """
@@ -305,37 +366,39 @@ class Fox(Agent):
             eaten = self.eat_rabbit
         """ 
         #self.logger.info("{} has eaten {}".format(self.unique_id, eaten))
-        if eaten :
+        rabbit_food = [obj for obj in cellmates if isinstance(obj, Rabbit)] #Don't make carrots from rabbits!!
+        if len(rabbit_food) >= 1:
+            other = self.random.choice(rabbit_food)
+            self.model.grid.remove_agent(other)
+            self.model.schedule.remove(other)
+            self.eaten = True
+        else : 
+            self.eaten = False
+
+
+        if self.eaten :
             self.health = self.max_health
         else:
             self.health -= 1
         
+        
+
+    def death(self):
+        """Method to kill a fox when he ate nothing, should be the last step 
+
+        Args:
+            None
+
+        Returns:
+            None
+        """
         # Kill the fox if he spend a few days without carrots
         if self.health == 0:
             self.model.grid.remove_agent(self)
             self.model.schedule.remove(self)
             #self.logger.info("Fox {} is dead :'(".format(self.unique_id))
             self.logger.info("Fox {} is dead :'(".format(self.unique_id))
-
-    def eat_rabbit(self, cellmates):
-        """Method to kill a rabbit 
-
-        Args:
-            cellmates (list): list of instance on the same cell
-
-        Returns:
-            bool: True if the fox killed a rabbit
-        """
-        rabbit = [obj for obj in cellmates if isinstance(obj, Rabbit)]
-        #self.logger.info(rabbit)
-        if rabbit:
-            other = self.random.choice(rabbit)
-            self.model.grid.remove_agent(other)
-            self.model.schedule.remove(other)
-            self.logger.info("Fox {} has eaten rabbit {}".format(self.unique_id, other.unique_id))
-            return True
-        else : 
-            return False
+        
 
     def sexual_reprod(self, cellmates):
         """
@@ -349,10 +412,14 @@ class Fox(Agent):
                     match = random.random()
                     if self.reprod_rate > match:
                         sex = bool(random.getrandbits(1))
-                        new_id, all_ids = self.model.get_next_id() 
+                        new_id = max([agent.unique_id for agent in self.model.schedule.agents])+1
                         a = Fox(new_id, self.model, sex, self.logger, reprod_rate = self.model.f_reprod_rate, 
                                 max_health = self.model.f_max_health)
                         try :
+                            #self.model.schedule.add(a)
+                            #Agent is activated in a random grid cell -> Temporary test
+                            #x = self.random.randrange(self.grid.width)
+                            #y = self.random.randrange(self.grid.height)
                             self.model.grid.place_agent(a, self.pos)
                         except Exception as e:
                             self.logger.warning(a, self.pos)
@@ -364,10 +431,11 @@ class Fox(Agent):
                 break #Only reproducing with on rabbit per turn
 
 
-class Terrain():
+class Terrain(Agent):
     """Terrain characteristics
     """
     def __init__(self, model, altitude, unique_id):
+        super().__init__(unique_id, model)
         self.unique_id = unique_id
         self.altitude = altitude
 
